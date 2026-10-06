@@ -70,7 +70,7 @@ def run(check_opis=True):
         build(inputs['weekly_analytics'],inputs['daily_prices'],[f'{pending_count} OPIS updates await a workbook write; preview uses existing workbook history'] if pending_count else [])
         atomic_json(PRIVATE/'state/last-successful-run.json',result)
         print('Reports checked:',len(plans),'Actions:',', '.join(p['action'] for p in plans) or 'no candidate PDFs')
-        print('Drive unchanged; live writes and scheduling disabled.')
+        print('Read-only refresh complete; this step made no Drive writes.')
 
 
 if __name__=='__main__':
