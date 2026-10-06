@@ -26,11 +26,7 @@ def run():
     with run_lock(PRIVATE/'state/run.lock'):
         google=GoogleReader();inputs={};provenance={}
         for key,item in config['drive_files'].items():
-            before=google.file_metadata(item['id'])
-            data=google.download_file(item['id'])
-            after=google.file_metadata(item['id'])
-            if before['version']!=after['version'] or before['modifiedTime']!=after['modifiedTime']:
-                raise RuntimeError('Drive workbook changed during download; retry required')
+            data,before=google.stable_download(item['id'])
             path,digest=archive_bytes(PRIVATE/'archives/workbooks',data,'.'+item['format'])
             inputs[key]=path;provenance[key]={'id':item['id'],'version':before['version'],'modifiedTime':before['modifiedTime'],'sha256':digest}
         history=daily_prices(inputs['daily_prices'])

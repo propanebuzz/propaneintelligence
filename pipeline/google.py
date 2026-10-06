@@ -43,6 +43,18 @@ class GoogleReader:
     def download_file(self, file_id):
         return self.get('https://www.googleapis.com/drive/v3/files/' + quote(file_id, safe='') + '?alt=media', binary=True)
 
+    def stable_download(self, file_id):
+        """Retry reads while Drive settles; never retry an upload here."""
+        for attempt in range(3):
+            before = self.file_metadata(file_id)
+            data = self.download_file(file_id)
+            after = self.file_metadata(file_id)
+            if (before['version'], before['modifiedTime']) == (after['version'], after['modifiedTime']):
+                return data, after
+            if attempt < 2:
+                time.sleep(2 ** attempt)
+        raise RuntimeError('Drive workbook kept changing during download; stopped')
+
     def opis_messages(self, query, limit=100):
         url = 'https://gmail.googleapis.com/gmail/v1/users/me/messages'
         messages, cursor = [], None
