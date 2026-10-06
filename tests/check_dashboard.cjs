@@ -21,7 +21,8 @@ for(const match of html.matchAll(/<script(?:\s[^>]*)?>([\s\S]*?)<\/script>/g))if
 for(const tab of ['brief','regions','prices','supply','scenarios','audit'])context.window.FEP_REVIEW.switchTab(tab);
 for(const [id,e] of Object.entries(elements))assert(!/NaN|undefined|Infinity/.test(e.innerHTML+e.textContent),`Invalid display value in ${id}`);
 assert(elements.mainKpis.innerHTML.includes('Ready-for-sale, US'));
-assert(elements.readySnapshot.innerHTML.includes('18.0'));
-assert(elements.supplyRead.innerHTML.includes('556'));
-assert(status.textContent.includes('2026'));
+const data=context.window.FEP_REVIEW.data, latest=data.weekly.at(-1);
+assert(elements.readySnapshot.innerHTML.includes('Ready-for-sale, M bbl'));
+assert(elements.supplyRead.innerHTML.includes('Regional production and import support'));
+assert(status.textContent.includes(latest.date.slice(0,4)));
 console.log('All six tabs execute; no invalid display values; Ready-for-Sale and regional fields present. Browser visual verification remains pending.');

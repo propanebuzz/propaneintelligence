@@ -32,13 +32,15 @@ def fetch():
         existing = next((r for r in history if r['date'] == record['date']), None)
         mismatches = {}
         if existing:
+            applied_path = PRIVATE / 'state/eia-applied-release.json'
+            precise = applied_path.exists() and json.loads(applied_path.read_text())['record']['date'] == record['date']
             for key, value in record.items():
                 if key == 'date' or key == 'production_4wk_bpd': continue
                 field = next((k for k, v in CORE.items() if v == key), key)
                 actual = existing.get(field)
                 if field in CORE: actual = actual * 1000000 if actual is not None else None
                 # Earlier workbook stocks came from the PDF, rounded to 0.1 million barrels.
-                tolerance = 50001 if key.endswith('_bbl') else 0
+                tolerance = 50001 if key.endswith('_bbl') and not precise else 0
                 if actual is None or abs(actual - value) > tolerance:
                     mismatches[key] = {'workbook': actual, 'csv': value}
         action = 'review' if mismatches else ('duplicate' if existing else 'insert_preview')

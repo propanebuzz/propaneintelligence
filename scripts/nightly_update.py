@@ -16,7 +16,7 @@ def steps(apply, config):
         raise RuntimeError('Unattended writes have not passed deployment checks')
     result = ['run_pipeline.py', 'stage_daily_update.py']
     if apply:
-        result += ['apply_daily_update.py', 'run_pipeline.py']
+        result += ['apply_daily_update.py', 'run_pipeline.py', 'publish_site.py']
     return result
 
 
@@ -40,7 +40,7 @@ def run(apply=False):
                 raise RuntimeError('Nightly run stopped at ' + script + '; review private state before retrying')
         report.update(status='verified', finished_at=datetime.now(timezone.utc).isoformat())
         atomic_json(path, report)
-        print('Nightly workflow verified:', report['mode'], '; weekly automation remains disabled.')
+        print('Nightly workflow verified:', report['mode'], '; daily data and site publication checked.')
 
 
 if __name__ == '__main__':

@@ -4,9 +4,17 @@
   "gmail_account": "propanebuzz@gmail.com",
   "opis_candidate_query": "subject:OPIS has:attachment",
   "opis_local_time": "20:00",
-  "live_updates_enabled": false,
+  "live_updates_enabled": true,
   "drive_files": {
-    "weekly_analytics": {"id": "14XA_BnMC8wf0jgXMqKvB21yEi51fbP9q", "name": "Propane_Analytics.xlsx", "format": "xlsx"},
-    "daily_prices": {"id": "1VxyMTDFJj8Wb6Lp04yAxKn93uD4RXBOG", "name": "Daily Prices.xlsm", "format": "xlsm"}
+    "weekly_analytics": {
+      "id": "14XA_BnMC8wf0jgXMqKvB21yEi51fbP9q",
+      "name": "Propane_Analytics.xlsx",
+      "format": "xlsx"
+    },
+    "daily_prices": {
+      "id": "1VxyMTDFJj8Wb6Lp04yAxKn93uD4RXBOG",
+      "name": "Daily Prices.xlsm",
+      "format": "xlsm"
+    }
   }
 }

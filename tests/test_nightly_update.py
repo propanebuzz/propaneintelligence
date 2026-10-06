@@ -11,5 +11,5 @@ class NightlyTests(unittest.TestCase):
             steps(True, {'live_updates_enabled': False})
 
     def test_verified_upload_followed_by_fresh_snapshot(self):
-        self.assertEqual(steps(True, {'live_updates_enabled': True})[-2:],
-                         ['apply_daily_update.py', 'run_pipeline.py'])
+        self.assertEqual(steps(True, {'live_updates_enabled': True})[-3:],
+                         ['apply_daily_update.py', 'run_pipeline.py', 'publish_site.py'])

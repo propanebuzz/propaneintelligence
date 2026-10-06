@@ -15,12 +15,12 @@ from pipeline.opis import parse_pages,VERSION
 from pipeline.records import classify_upsert
 from pipeline.storage import PRIVATE,archive_bytes,atomic_json,run_lock
 from pipeline.workbooks import daily_prices
-from build_dashboard import build
+from scripts.build_dashboard import build
 
 ROOT=Path(__file__).resolve().parents[1]
 
 
-def run():
+def run(check_opis=True):
     config=json.loads((ROOT/'config/sources.json').read_text())
     started=datetime.now(timezone.utc).isoformat();plans=[];failures=[]
     with run_lock(PRIVATE/'state/run.lock'):
@@ -31,7 +31,7 @@ def run():
             inputs[key]=path;provenance[key]={'id':item['id'],'version':before['version'],'modifiedTime':before['modifiedTime'],'sha256':digest}
         history=daily_prices(inputs['daily_prices'])
         existing=[{'date':r['date'],'conway':r['cwy'],'tet':r['tet'],'wti':r['wti'],'propane_unit':'USD/gal','wti_unit':'USD/bbl'} for r in history]
-        messages=google.opis_messages(config['opis_candidate_query']+' newer_than:14d')
+        messages=google.opis_messages(config['opis_candidate_query']+' newer_than:14d') if check_opis else []
         seen=set();candidates={}
         for message in messages:
             pending=[message.get('payload',{})]
@@ -74,7 +74,11 @@ def run():
 
 
 if __name__=='__main__':
-    try:run()
+    import argparse
+    parser=argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--workbooks-only',action='store_true')
+    args=parser.parse_args()
+    try:run(check_opis=not args.workbooks_only)
     except Exception as error:
         atomic_json(PRIVATE/'state/last-failure.json',{'at':datetime.now(timezone.utc).isoformat(),'reason':str(error) if isinstance(error,(RuntimeError,ValueError)) else type(error).__name__})
         print('Pipeline stopped; last-good snapshot retained:',str(error) if isinstance(error,(RuntimeError,ValueError)) else type(error).__name__)
