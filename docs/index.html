@@ -212,7 +212,7 @@ let resizeTimer;window.addEventListener('resize',()=>{clearTimeout(resizeTimer);
 const originalInit=initContent;
 initContent=function(){
  originalInit();
- document.querySelectorAll('.edition strong').forEach(e=>e.textContent='PRIVATE PREVIEW');
+ document.querySelectorAll('.edition strong').forEach(e=>e.textContent='MARKET DASHBOARD');
  document.querySelectorAll('.status').forEach(e=>e.textContent=D.meta.status+' Prices '+date(P.date)+'; EIA week ending '+date(L.date)+'.');
  $('mainKpis').innerHTML=metric('Ready-for-sale, US',num(L.ready)+'M',sig(S.yoy_ready)+'M vs prior year')+metric('National total stocks',num(L.inv)+'M','Propane/propylene · '+md(L.date))+metric('Conway',num(P.cwy*100,2)+'¢','per gallon · '+md(P.date))+metric('Mt Belvieu (TET)',num(P.tet*100,2)+'¢','per gallon · '+md(P.date))+metric('WTI','$'+num(P.wti,2),'per barrel · '+md(P.date))+metric('TET minus Conway',num((P.tet-P.cwy)*100,2)+'¢','per gallon');
  $('readyNote').textContent='Ready-for-sale propane is the retailer-focused inventory measure. Total propane/propylene stocks are retained separately. Regional ready-for-sale history is available only where the workbook contains an observation.';
