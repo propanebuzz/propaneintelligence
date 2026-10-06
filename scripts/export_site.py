@@ -25,6 +25,7 @@ def export(destination):
         raise RuntimeError('Private information in site export; stopped')
     destination.mkdir(parents=True, exist_ok=True)
     html = (ROOT / 'dashboard/index.html').read_text().replace('Private snapshot not loaded', 'Dashboard snapshot not loaded')
+    html = html.replace('PRIVATE PREVIEW', 'MARKET DASHBOARD')
     html = html.replace('<head>', '<head>\n<meta name="robots" content="noindex,nofollow">')
     (destination / 'index.html').write_text(html)
     temporary = destination / 'snapshot.js.tmp'
