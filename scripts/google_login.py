@@ -1,4 +1,5 @@
-"""One-time read-only desktop OAuth login; never prints credentials."""
+"""Desktop OAuth login; optional Drive write consent, never prints credentials."""
+import argparse
 import base64
 import hashlib
 from http.server import BaseHTTPRequestHandler, HTTPServer
@@ -17,6 +18,10 @@ SCOPES = ['https://www.googleapis.com/auth/gmail.readonly',
 
 
 def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--drive-write', action='store_true', help='Request Drive read/write permission; Gmail remains read-only. Performs no workbook writes.')
+    args = parser.parse_args()
+    scopes = [SCOPES[0], 'https://www.googleapis.com/auth/drive' if args.drive_write else SCOPES[1]]
     client = json.loads((PRIVATE / 'google-client.json').read_text())['installed']
     state, verifier = secrets.token_urlsafe(32), secrets.token_urlsafe(64)
     challenge = base64.urlsafe_b64encode(hashlib.sha256(verifier.encode()).digest()).decode().rstrip('=')
@@ -41,11 +46,11 @@ def main():
         redirect = f'http://127.0.0.1:{server.server_port}'
         url = 'https://accounts.google.com/o/oauth2/v2/auth?' + urlencode({
             'client_id': client['client_id'], 'redirect_uri': redirect,
-            'response_type': 'code', 'scope': ' '.join(SCOPES),
+            'response_type': 'code', 'scope': ' '.join(scopes),
             'state': state, 'code_challenge': challenge, 'code_challenge_method': 'S256',
             'access_type': 'offline', 'prompt': 'consent', 'login_hint': 'propanebuzz@gmail.com'})
         subprocess.run(['open', '-a', 'Firefox', url], check=True)
-        print('In Firefox, authorize propanebuzz@gmail.com for read-only Gmail and Drive access.', flush=True)
+        print('In Firefox, authorize propanebuzz@gmail.com for read-only Gmail and ' + ('Drive read/write access. Google permission covers all Drive files; application updates will be limited to the configured workbook IDs.' if args.drive_write else 'read-only Drive access.'), flush=True)
         deadline = time.monotonic() + 600
         while not result and time.monotonic() < deadline:
             server.handle_request()
@@ -56,8 +61,8 @@ def main():
                       'redirect_uri': redirect, 'grant_type': 'authorization_code'}).encode()
     with urlopen(Request('https://oauth2.googleapis.com/token', data=body), timeout=30) as response:
         token = json.load(response)
-    if not set(SCOPES).issubset(set(token.get('scope', '').split())):
-        raise RuntimeError('Both read-only permissions are required; no credentials saved.')
+    if not set(scopes).issubset(set(token.get('scope', '').split())):
+        raise RuntimeError('Requested permissions were not granted; no credentials saved.')
     headers = {'Authorization': 'Bearer ' + token['access_token']}
     with urlopen(Request('https://gmail.googleapis.com/gmail/v1/users/me/profile', headers=headers), timeout=30) as response:
         profile = json.load(response)

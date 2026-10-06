@@ -15,3 +15,5 @@ logs/
 *.xls
 *token*.json
 *secret*.json
+
+node_modules/
