@@ -16,4 +16,4 @@ logs/
 *token*.json
 *secret*.json
 
-node_modules/
+node_modules
