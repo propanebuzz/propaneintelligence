@@ -37,3 +37,15 @@ class PackageTests(unittest.TestCase):
     def test_no_change_is_byte_identical(self):
         source=package(BASE)
         self.assertEqual(merge_numeric(source,b'',{'cells':{}}),source)
+    def test_empty_cell_patch_does_not_consume_next_cell(self):
+        xml=BASE.replace('<c r="B2" s="5"><v>0.5</v></c>','<c r="B2" s="5"/>')
+        authored=package('<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><sheetData><row r="2"><c r="B2"><v>0.5</v></c></row></sheetData></worksheet>')
+        result=merge_numeric(package(xml),authored,{'sheet_part':'xl/worksheets/sheet1.xml','cells':{'B2':.5}})
+        with ZipFile(BytesIO(result)) as z:self.assertIn('<c r="C2" s="5"><v>0.7</v></c>',z.read('xl/worksheets/sheet1.xml').decode())
+    def test_only_recognized_shared_residual_formulas_are_cleared(self):
+        xml=BASE.replace('</row>','<c r="J2" s="5"><f t="shared" ref="J2:J3" si="8">IF(OR($E2=&quot;&quot;,$I2=&quot;&quot;),&quot;&quot;,E2-I2)</f><v>4</v></c></row><row r="3"><c r="J3" s="5"><f t="shared" si="8"/><v>5</v></c></row>')
+        authored=package('<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><sheetData><row r="2"><c r="J2"><v>10</v></c></row></sheetData></worksheet>')
+        result=merge_numeric(package(xml),authored,{'sheet_part':'xl/worksheets/sheet1.xml','cells':{'J2':10},'clear_cells':['J2','J3']})
+        with ZipFile(BytesIO(result)) as z:
+            text=z.read('xl/worksheets/sheet1.xml').decode()
+            self.assertNotIn('<f',text);self.assertIn('<c r="J3" s="5"/>',text)

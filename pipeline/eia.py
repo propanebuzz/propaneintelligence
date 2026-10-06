@@ -2,7 +2,7 @@
 from datetime import datetime
 import re
 
-VERSION='eia-tables-1-9-v1'
+VERSION='eia-tables-1-9-v2'
 
 
 def _numbers(line,count):
@@ -81,5 +81,30 @@ def parse_pages(pages):
         result[key+'_ready_bbl']=value*1e6
     if abs(sum(result[f'padd{i}_ready_bbl'] for i in range(1,6))-result['ready_bbl'])>300000:
         raise ValueError('EIA regional ready-for-sale stocks do not reconcile within rounding tolerance')
-    if any(v<0 for k,v in result.items() if k!='date'):raise ValueError('Negative EIA field')
+    stock_rows=[line.strip() for line in pages[0].split('Petroleum Supply',1)[0].splitlines() if line.strip().startswith('Propane/Propylene') and '..' in line]
+    if len(stock_rows)!=1:raise ValueError('EIA total stock/build row missing or ambiguous')
+    stocks=_numbers(stock_rows[0],7)
+    result.update(inv_bbl=stocks[0]*1e6,build_bbl=stocks[2]*1e6)
+    for page in pages:
+        if 'Table 9.' in page and ('Propane/Propylene' in page or 'Propane, fractionated' in page or '\nPropane ' in page):
+            if 'Thousand Barrels per Day Except Where Noted' not in page:raise ValueError('EIA flow units changed')
+            if day.strftime('%-m/%-d/%y') not in '\n'.join(page.splitlines()[:8]):raise ValueError('EIA Table 9 date differs from Table 1')
+    stock_blocks=_block(pages,'Propane/Propylene','Stocks (Million Barrels)')
+    stock_blocks=[b for b in stock_blocks if len(re.split(r'\.{2,}',b[0])[-1].split())==8]
+    if len(stock_blocks)!=1:raise ValueError('EIA regional stock section missing or ambiguous')
+    for label,key in [('Midwest (PADD 2)','midwest_bbl'),('Gulf Coast (PADD 3)','gulf_bbl')]:
+        # Subregion rows require the full stock block, not the five flow rows.
+        page=next(p for p in pages if stock_blocks[0][0] in p)
+        section=page.split('Propane, fractionated and ready for sale',1)[0]
+        lines=[line.strip() for line in section.splitlines() if line.strip().startswith(label)]
+        if len(lines)!=1:raise ValueError('Regional total stock row missing or ambiguous')
+        result[key]=_numbers(lines[0],8)[0]*1e6
+    exports=[]
+    for page in pages:
+        if 'Table 9.' in page and '\nExports' in page:
+            section=re.split(r'\nExports[^\n]*\n',page,1)[1].split('Net Imports',1)[0]
+            exports.extend(line.strip() for line in section.splitlines() if re.match(r'^\s*Propane\s+\.',line))
+    if len(exports)!=1:raise ValueError('EIA propane export row missing or ambiguous')
+    result['exports_bpd']=_numbers(exports[0],6)[0]*1000
+    if any(v<0 for k,v in result.items() if k not in ('date','build_bbl')):raise ValueError('Negative EIA stock or flow')
     return result

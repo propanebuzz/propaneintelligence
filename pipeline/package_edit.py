@@ -40,7 +40,7 @@ def daily_plan(path,records,allow_revisions=False):
 
 
 def merge_numeric(source,authored,plan):
-    if not plan['cells']:return source
+    if not plan['cells'] and not plan.get('clear_cells'):return source
     part=plan['sheet_part']
     with ZipFile(BytesIO(authored)) as a:
         root=ET.fromstring(a.read('xl/worksheets/sheet1.xml'))
@@ -50,6 +50,26 @@ def merge_numeric(source,authored,plan):
         if float(value)!=float(plan['cells'][address]):raise ValueError('Authored numeric value differs from plan')
     with ZipFile(BytesIO(source)) as z:
         xml=z.read(part).decode('utf-8')
+        shared_residual_ids=set()
+        source_tree=ET.fromstring(xml)
+        for cell in source_tree.findall('s:sheetData/s:row/s:c',NS):
+            address=cell.attrib['r'];formula=cell.find('s:f',NS)
+            if address.startswith('J') and formula is not None and formula.text:
+                number=re.search(r'\d+$',address)[0]
+                expected=f'IF(OR($E{number}="",$I{number}=""),"",E{number}-I{number})'
+                if formula.text==expected and formula.attrib.get('t')=='shared':shared_residual_ids.add(formula.attrib.get('si'))
+        for address in plan.get('clear_cells',[]):
+            match=re.search(rf'<c\b[^>]*\br="{address}"[^>]*?(?:/>|>.*?</c>)',xml,re.S)
+            if not match:raise ValueError('Legacy residual formula cell missing')
+            cell=ET.fromstring(match.group().replace('<c ',f'<c xmlns="{NS["s"]}" ',1))
+            formula=cell.find('s:f',NS)
+            row=re.search(r'\d+$',address)[0]
+            expected=f'IF(OR($E{row}="",$I{row}=""),"",E{row}-I{row})'
+            recognized=formula is not None and (formula.text==expected or (not formula.text and formula.attrib.get('t')=='shared' and formula.attrib.get('si') in shared_residual_ids))
+            if not address.startswith('J') or not recognized:raise ValueError('Refusing to clear an unrecognized formula')
+            opening=match.group().split('>')[0]
+            replacement=opening+'/>'
+            xml=xml[:match.start()]+replacement+xml[match.end():]
         rows={int(m.group(1)):m for m in re.finditer(r'<row\b[^>]*\br="(\d+)"[^>]*>.*?</row>',xml,re.S)}
         if 2 not in rows:raise ValueError('Input row style template missing')
         template=rows[2].group()
@@ -61,7 +81,7 @@ def merge_numeric(source,authored,plan):
             text=old.group() if old else f'<row r="{row}" ht="15.75" customHeight="1"></row>'
             for address,value in sorted(updates.items()):
                 column=re.match(r'[A-Z]+',address)[0]
-                pattern=rf'<c\b[^>]*\br="{address}"[^>]*(?:/>|>.*?</c>)'
+                pattern=rf'<c\b[^>]*\br="{address}"[^>]*?(?:/>|>.*?</c>)'
                 match=re.search(pattern,text,re.S)
                 if match:
                     cell=match.group()

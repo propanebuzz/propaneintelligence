@@ -50,6 +50,8 @@ def weekly_observations(path):
                 raise ValueError(f'Invalid weekly value {key} at row {number}')
             if v is not None and key not in ('build',) and v<0:raise ValueError('Negative stock or flow')
             r[key]=v/1e6 if v is not None and index in (4,5,6,7,8,10,11,12) else v
+        if r['other'] is None and all(r[k] is not None for k in ('inv','midwest','gulf')):
+            r['other']=r['inv']-r['midwest']-r['gulf']
         r['cached_yoy']=None
         result.append(r)
     workbook.close();result.sort(key=lambda r:r['date'])

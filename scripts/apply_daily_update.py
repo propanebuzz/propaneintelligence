@@ -6,7 +6,7 @@ sys.path.insert(0,str(Path(__file__).resolve().parents[1]))
 from pipeline.google import GoogleReader
 from pipeline.drive_update import apply_daily
 from pipeline.storage import PRIVATE,run_lock
-from stage_daily_update import stage,ROOT
+from scripts.stage_daily_update import stage,ROOT
 
 if __name__=='__main__':
     with run_lock(PRIVATE/'state/run.lock'):
