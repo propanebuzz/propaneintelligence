@@ -74,3 +74,8 @@ The private dashboard was rebuilt from the saved Drive file and all six tabs pas
 ## Deployment checkpoint
 
 The user published updated permission descriptions on all three website pages. Google access remains verified after disabling the old OAuth secret. Stable workbook downloads now retry up to three reads when version or modification time changes; continuously changing files still stop processing. Uploads remain conditional and are never blindly retried. Thirty-three Python tests pass. The earlier ChatGPT daily-price schedule must be confirmed inactive before enabling a replacement schedule. Automatic EIA fetching, real new-report write validation, and unattended schedule activation remain pending.
+
+
+## Nightly workflow preparation
+
+The user confirmed the older ChatGPT daily-price task is paused. A replacement thread heartbeat named Propane Intelligence nightly update (ID propane-intelligence-nightly-update) was created PAUSED for 20:00 local time; America/Chicago must remain the host timezone. It is not an active writer. scripts/nightly_update.py provides one locked entrypoint with fail-fast steps and private run outcomes. Its default read-only catch-up and daily staging passed against real Google sources, with duplicate/no-change results. --apply requires live_updates_enabled=true; the flag remains false. Successful daily uploads are followed by a fresh dashboard read. Weekly automatic retrieval is not implemented in this entrypoint and must not be inferred from a validated stale sample. Thirty-six Python tests pass. Real new-report upload and native Excel verification remain deployment gates.
