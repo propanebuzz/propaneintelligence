@@ -1,6 +1,7 @@
 <!doctype html>
 <html lang="en">
 <head>
+<meta name="robots" content="noindex,nofollow">
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>FEP | Propane Market Intelligence</title>
 <style>
@@ -77,7 +78,7 @@
 <script src="snapshot.js"></script>
 <script>
 'use strict';
-const D=window.PROPANE_SNAPSHOT; if(!D) throw new Error('Private snapshot not loaded'); const S=D.summary;
+const D=window.PROPANE_SNAPSHOT; if(!D) throw new Error('Dashboard snapshot not loaded'); const S=D.summary;
 const C={navy:'#163852',teal:'#087f82',amber:'#bd770c',blue:'#346ec6',purple:'#7855a3',red:'#b6463e',gray:'#82919e',light:'#dce8ee'};
 const bySeason={};D.weekly.forEach(r=>{(bySeason[r.season]??={})[r.week]=r});
 const current=D.weekly.filter(r=>r.season===S.year), L=S.weekly, P=S.price, Q=S.prior;
