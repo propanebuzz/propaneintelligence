@@ -8,6 +8,7 @@ sys.path.insert(0,str(Path(__file__).resolve().parents[1]))
 from pipeline.package_edit import daily_plan,merge_numeric
 from pipeline.storage import PRIVATE,atomic_json,archive_bytes
 from pipeline.workbooks import daily_prices
+from pipeline.records import normalize_opis
 
 ROOT=Path(__file__).resolve().parents[1]
 NODE=Path.home()/'.cache/codex-runtimes/codex-primary-runtime/dependencies/node/bin/node'
@@ -29,6 +30,16 @@ def stage(source,records,folder,allow_revisions=False):
     else:candidate=original
     output=folder/'candidate.xlsm';output.write_bytes(candidate)
     rows=daily_prices(output)
+    original_rows={r['date']:r for r in daily_prices(source)}
+    saved_rows={r['date']:r for r in rows}
+    revised={normalize_opis(r)['date'] for r in records if normalize_opis(r)} if allow_revisions else set()
+    for day,old in original_rows.items():
+        new=saved_rows.get(day)
+        if new is None or (day not in revised and any(old[k]!=new[k] for k in ('cwy','tet','wti'))):
+            raise ValueError('Historical daily observation changed or disappeared')
+    if any(a['action']=='insert' for a in plan['actions']):
+        if [r['date'] for r in sorted(rows,key=lambda r:r['row'])] != sorted(saved_rows,reverse=True):
+            raise ValueError('Daily prices were not saved newest first')
     for r in records:
         if r is None:continue
         observed=next((x for x in rows if x['date']==r['date']),None)

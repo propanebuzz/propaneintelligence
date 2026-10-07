@@ -20,8 +20,11 @@ def daily_plan(path,records,allow_revisions=False):
         root=ET.fromstring(z.read('xl/worksheets/sheet1.xml'))
         if root.find('.//s:f',NS) is not None:raise ValueError('Daily input sheet now contains formulas; review required')
         if any('table' in n.lower() or 'signature' in n.lower() for n in z.namelist()):raise ValueError('Tables or digital signatures require a separate preservation workflow')
-        next_row=max(int(r.attrib['r']) for r in root.findall('s:sheetData/s:row',NS))+1
-    cells={};actions=[];seen=set()
+        # Styled empty rows do not define the price history boundary.
+        history_rows=sorted(r['row'] for r in history)
+        if history_rows != list(range(2, len(history)+2)):
+            raise ValueError('Daily price history is not contiguous from row 2; review placement before writing')
+    cells={};actions=[];seen=set();pending={};has_insert=False
     for raw in sorted(records,key=lambda r:r.get('date','') if r else ''):
         record=normalize_opis(raw)
         if record and record['date'] in seen:raise ValueError('Multiple candidate records for one date')
@@ -29,11 +32,17 @@ def daily_plan(path,records,allow_revisions=False):
         action=classify_upsert(existing,record)
         actions.append({'date':record['date'] if record else None,'action':action})
         if action in ('duplicate','skip_empty'):continue
-        if action=='revision':
-            if not allow_revisions:raise ValueError('Report revision requires explicit review; no candidate written')
-            row=next(r['row'] for r in history if r['date']==record['date'])
-        else:
-            row=next_row;next_row+=1
+        if action=='revision' and not allow_revisions:
+            raise ValueError('Report revision requires explicit review; no candidate written')
+        pending[record['date']]=record
+        has_insert |= action=='insert'
+    if has_insert:
+        combined={r['date']:r for r in existing}
+        combined.update(pending)
+        targets=[(row,record) for row,record in enumerate(sorted(combined.values(),key=lambda r:r['date'],reverse=True),2)]
+    else:
+        targets=[(next(r['row'] for r in history if r['date']==day),record) for day,record in pending.items()]
+    for row,record in targets:
         serial=(date.fromisoformat(record['date'])-date(1899,12,30)).days
         cells.update({f'A{row}':serial,f'B{row}':record['conway'],f'C{row}':record['tet'],f'D{row}':record['wti']})
     return {'sheet_part':'xl/worksheets/sheet1.xml','cells':cells,'actions':actions}
