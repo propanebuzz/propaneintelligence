@@ -18,6 +18,8 @@ def export(destination):
                     'sources': [{'file': 'EIA weekly observations', 'sha256': original['meta']['sources'][0]['sha256']},
                                 {'file': 'OPIS-derived daily prices', 'sha256': original['meta']['sources'][1]['sha256']}],
                     'release_date': original['meta'].get('release_date')}
+    data['meta']['sources'].extend({'file': 'EIA supplemental report', 'sha256': source['sha256']}
+                                   for source in original['meta']['sources'][2:])
     for key in ('weekly', 'archive', 'daily'):
         data[key] = [{k: v for k, v in row.items() if k not in ('row', 'cached_week', 'cached_yoy')} for row in data[key]]
     text = json.dumps(data, allow_nan=False).replace('<', '\\u003c')

@@ -14,8 +14,9 @@ from pipeline.workbooks import daily_prices,weekly_observations
 ROOT=Path(__file__).resolve().parents[1]
 
 
-def build(weekly_path,daily_path,extra_warnings=None):
-    archive=weekly_observations(weekly_path);daily=daily_prices(daily_path)
+def build(weekly_path,daily_path,extra_warnings=None,*,observations=None,supplemental_sources=None):
+    archive=weekly_observations(weekly_path) if observations is None else observations
+    daily=daily_prices(daily_path)
     latest=archive[-1];year=latest['season']
     weekly=[r for r in archive if r['season']>=year-5]
     summary=summarize(weekly,daily)
@@ -26,6 +27,7 @@ def build(weekly_path,daily_path,extra_warnings=None):
     if (today-date.fromisoformat(daily[-1]['date'])).days>4:warnings.append('Daily prices are more than four calendar days old')
     regions=[{'region':'PADD '+str(i),'now':latest['padd'+str(i)+'_ready_bbl']/1e6 if latest['padd'+str(i)+'_ready_bbl'] is not None else None,'prior':None} for i in range(1,6)]
     sources=[{'file':name,'sha256':hashlib.sha256(path.read_bytes()).hexdigest()} for name,path in [('Propane_Analytics.xlsx',weekly_path),('Daily Prices.xlsm',daily_path)]]
+    sources.extend(supplemental_sources or [])
     data={'meta':{'built':now,'snapshot':'Private preview','status':'Private preview; live updates disabled. '+('; '.join(warnings) if warnings else ''),'sources':sources,'release_date':None},
           'summary':summary,'weekly':weekly,'archive':archive,'daily':daily,'monthly':monthly_prices(daily),
           'anomalies':reconciliation_flags(archive),'nonfriday':[r['date'] for r in archive if date.fromisoformat(r['date']).weekday()!=4],
