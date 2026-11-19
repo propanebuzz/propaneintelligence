@@ -103,3 +103,8 @@ Codex command networking is currently restricted; manual Terminal execution has 
 ## User-supplied source refresh — October 22, 2026
 
 Local import of the supplied legacy weekly workbook, daily XLSX and complete EIA PDF produced 202 daily observations through October 21 and 616 weekly observations through October 16. Existing overlapping core values and all saved daily history match. Saved official supplementary history was preserved; latest official demand/import/regional fields come from the PDF. October 2/9 supplementary fields remain unavailable, explicitly warned, without residual-demand substitution. Original workbooks and Drive files were not modified. Sources and pre-import snapshot are archived privately. The import adapter refuses conflicting historical prices/core observations. Forty-nine unit checks and all six dashboard execution checks pass. Export includes only sanitized data and source hashes. GitHub networking remains restricted; local preparation does not establish publication or unattended readiness.
+
+
+## User-supplied source refresh — November 19, 2026
+
+Imported the supplied legacy weekly workbook and daily XLSX plus the November 13 EIA PDF. Dashboard now contains 221 daily observations through November 18 and 620 weekly observations through November 13. Previously saved prices and core weekly history matched; official historical supplementary fields were retained and latest fields validated against the supplied PDF. Missing supplemental observations for intervening weeks remain null with explicit warnings. Source workbooks and Drive files were not changed. Fifty tests and all six dashboard execution checks passed. Sources and pre-import snapshots remain private. Network publication must be verified separately.

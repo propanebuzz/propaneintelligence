@@ -28,7 +28,7 @@ PDF_FIELDS = {'inv_bbl':('inv',1e6), 'midwest_bbl':('midwest',1e6),
               'production_bpd':('production',1e6)}
 
 
-def merge_weekly(legacy, previous, record):
+def merge_weekly(legacy, previous, record=None):
     known = {r['date']:deepcopy(r) for r in previous}
     seen = set()
     for number, values in legacy:
@@ -54,11 +54,14 @@ def merge_weekly(legacy, previous, record):
                 raise ValueError(f'Historical revision requires review: {iso} {key}')
             row[key] = value
         # Legacy J is propylene; N is residual demand. Neither is official demand.
+        if iso not in known and any(row[k] is None for k in LEGACY.values()):
+            raise ValueError('Incomplete core weekly observation: '+iso)
         known[iso] = row
-    if record['date'] not in known: raise ValueError('PDF week absent from supplied workbook')
-    if record['date'] != max(known): raise ValueError('PDF is not the latest supplied week')
-    latest = known[record['date']]
-    for source, value in record.items():
+    if record is not None:
+        if record['date'] not in known: raise ValueError('PDF week absent from supplied workbook')
+        if record['date'] != max(known): raise ValueError('PDF is not the latest supplied week')
+    latest = known[record['date']] if record else None
+    for source, value in (record or {}).items():
         if source == 'date': continue
         target, divisor = PDF_FIELDS.get(source,(source,1))
         if target not in FIELDS.values(): continue
@@ -75,7 +78,7 @@ def merge_weekly(legacy, previous, record):
     return rows
 
 
-def run(weekly, daily, pdf):
+def run(weekly, daily, pdf=None):
     with run_lock(PRIVATE/'state/nightly.lock'):
         previous = json.loads((PRIVATE/'state/dashboard-last-good.json').read_text())
         incoming = daily_prices(daily)
@@ -85,8 +88,10 @@ def run(weekly, daily, pdf):
         for day, row in old.items():
             if any(not math.isclose(row[k],new[day][k],abs_tol=1e-9) for k in ('cwy','tet','wti')):
                 raise ValueError('Daily historical revision requires review: '+day)
-        with pdfplumber.open(pdf) as document:
-            record = parse_pages([p.extract_text() or '' for p in document.pages])
+        record = None
+        if pdf:
+            with pdfplumber.open(pdf) as document:
+                record = parse_pages([p.extract_text() or '' for p in document.pages])
         workbook = load_workbook(weekly,read_only=True,data_only=True)
         try:
             values = list(workbook['MasterData'].values)
@@ -96,15 +101,19 @@ def run(weekly, daily, pdf):
                                 previous['archive'],record)
         finally: workbook.close()
         archived = []
-        for path in (weekly,daily,pdf):
+        for path in (weekly,daily,pdf) if pdf else (weekly,daily):
             saved,digest = archive_bytes(PRIVATE/'archives/local-imports',path.read_bytes(),path.suffix)
             archived.append({'sha256':digest,'archive':str(saved)})
         atomic_json(PRIVATE/'archives/pre-import'/('snapshot-'+previous['meta']['built'].replace(':','-')+'.json'),previous)
-        missing = [r['date'] for r in rows if r['date'] > previous['archive'][-1]['date']
+        detail_start = min((r['date'] for r in rows if r['season'] == rows[-1]['season']
+                            and r['product_supplied_bpd'] is not None), default=rows[-1]['date'])
+        missing = [r['date'] for r in rows if r['season'] == rows[-1]['season']
+                   and r['date'] >= detail_start
                    and r['product_supplied_bpd'] is None]
         warnings = ['Official demand, imports and regional detail unavailable for '+', '.join(missing)+'; no values estimated.'] if missing else []
         data = build(weekly,daily,warnings,observations=rows,
-                     supplemental_sources=[{'file':'EIA supplied PDF','sha256':archived[2]['sha256']}])
+                     supplemental_sources=([{'file':'EIA supplied PDF','sha256':archived[2]['sha256']}]
+                                           if pdf else previous['meta']['sources'][2:]))
         export(PRIVATE/'site-export')
         atomic_json(PRIVATE/'state/local-import.json',{'status':'validated','sources':archived,
                     'daily_date':incoming[-1]['date'],'weekly_date':rows[-1]['date'],
@@ -116,6 +125,6 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('weekly',type=Path)
     parser.add_argument('daily',type=Path)
-    parser.add_argument('pdf',type=Path)
+    parser.add_argument('pdf',type=Path,nargs='?')
     args = parser.parse_args()
     run(args.weekly,args.daily,args.pdf)
