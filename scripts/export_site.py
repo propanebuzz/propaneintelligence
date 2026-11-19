@@ -1,5 +1,6 @@
 """Export the user-authorized no-login dashboard; never export source files or credentials."""
 import json
+import shutil
 from pathlib import Path
 import sys
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
@@ -30,6 +31,8 @@ def export(destination):
     html = html.replace('PRIVATE PREVIEW', 'MARKET DASHBOARD')
     html = html.replace('<head>', '<head>\n<meta name="robots" content="noindex,nofollow">')
     (destination / 'index.html').write_text(html)
+    for asset in ('metrics.js', 'enhancements.js'):
+        shutil.copyfile(ROOT / 'dashboard' / asset, destination / asset)
     temporary = destination / 'snapshot.js.tmp'
     temporary.write_text('window.PROPANE_SNAPSHOT=' + text + ';\n')
     temporary.replace(destination / 'snapshot.js')

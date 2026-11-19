@@ -7,7 +7,7 @@ from urllib.request import Request, urlopen
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from scripts.export_site import export, ROOT
 
-FILES = ['docs/index.html', 'docs/snapshot.js']
+FILES = ['docs/index.html', 'docs/snapshot.js', 'docs/metrics.js', 'docs/enhancements.js']
 
 
 def git(*args, **kwargs):
