@@ -39,7 +39,7 @@ def build(weekly_path,daily_path,extra_warnings=None,*,observations=None,supplem
     payload='window.PROPANE_SNAPSHOT='+json.dumps(data,allow_nan=False).replace('<','\\u003c')+';\n'
     temp=preview/'snapshot.js.tmp';temp.write_text(payload);temp.replace(preview/'snapshot.js')
     shutil.copyfile(ROOT/'dashboard/index.html',preview/'index.html')
-    for asset in ('metrics.js', 'enhancements.js'):
+    for asset in ('metrics.js', 'enhancements.js', 'stories.js'):
         shutil.copyfile(ROOT/'dashboard'/asset, preview/asset)
     atomic_json(PRIVATE/'state/dashboard-last-good.json',data)
     print('Private dashboard built:',len(daily),'daily records;',len(archive),'weekly records;',len(data['anomalies']),'stock/build flags')

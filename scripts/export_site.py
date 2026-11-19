@@ -31,7 +31,7 @@ def export(destination):
     html = html.replace('PRIVATE PREVIEW', 'MARKET DASHBOARD')
     html = html.replace('<head>', '<head>\n<meta name="robots" content="noindex,nofollow">')
     (destination / 'index.html').write_text(html)
-    for asset in ('metrics.js', 'enhancements.js'):
+    for asset in ('metrics.js', 'enhancements.js', 'stories.js'):
         shutil.copyfile(ROOT / 'dashboard' / asset, destination / asset)
     temporary = destination / 'snapshot.js.tmp'
     temporary.write_text('window.PROPANE_SNAPSHOT=' + text + ';\n')

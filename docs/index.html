@@ -11,12 +11,14 @@
 @media(max-width:700px){header{padding:19px 16px;display:block}.edition{text-align:left;margin-top:14px}.nav{padding:0 7px;gap:0}.nav button{padding:13px 10px 11px;font-size:12px}main{padding:17px 13px}.headline{font-size:28px}.lead{font-size:14px}.grid,.sensitivity{grid-template-columns:1fr}.kpis{grid-template-columns:repeat(2,1fr);gap:9px}.kpi{padding:13px}.kpi strong{font-size:23px}.card{padding:17px}.status{margin-bottom:22px;font-size:11px}.sectiontitle{font-size:23px}.footer{padding:18px 4px}.chart{min-height:290px}.nav .print{display:none}.controls{gap:8px}.source{overflow-wrap:anywhere}}
 @media print{header{color:#172b42;background:white;border-bottom:1px solid #aaa}.brand,.brand b,.edition{color:#172b42}.topbar,.chartactions,.sliderbox,.status,.controls{display:none!important}main{max-width:none;padding:8px}.card{box-shadow:none;break-inside:avoid}.grid{display:block}.card{margin-bottom:14px}.kpis{grid-template-columns:repeat(3,1fr)}.panel[hidden]{display:none!important}.reading{min-height:0}.footer{padding-bottom:0}}
 .field{display:block;margin:12px 0;font-size:12px}.field input,.field select,.field textarea{display:block;width:100%;padding:9px;border:1px solid var(--line);border-radius:5px;color:var(--ink);background:white}.card+.card{margin-top:18px}.grid>.card+.card{margin-top:0}.weather-row{display:grid;grid-template-columns:1fr 90px 100px;gap:10px;align-items:center;margin:12px 0}.weather-row input{width:100%;padding:7px;border:1px solid var(--line);border-radius:5px}.watch-reading{font:600 25px var(--mono);margin:12px 0}.note{padding:15px 0;border-bottom:1px solid var(--line)}.note p{white-space:pre-wrap;overflow-wrap:anywhere}.note a{overflow-wrap:anywhere}.note small{color:var(--muted)}
+.story-art svg{display:block;width:100%;height:auto;border:1px solid var(--line);border-radius:7px}.story-actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:14px}.story-grid>.card{margin-top:0}.story-grid .card{padding:15px}.story-art{background:white}@media print{.story-actions{display:none}.story-grid .card{break-inside:avoid}}
 </style>
 </head>
 <body>
 <header><div><div class="brand"><b>FEP</b> &nbsp; Flashpoint Energy Partners</div><div class="title">Propane Market Intelligence</div></div><div class="edition"><strong>AUDITED MARKET DASHBOARD</strong><div id="headerDates">Dated source snapshot</div><div>Dated source snapshot · Explore, compare and export</div></div></header>
 <div class="topbar"><nav class="nav" role="tablist" aria-label="Dashboard sections">
 <button role="tab" id="tab-brief" aria-controls="brief" aria-selected="true" data-tab="brief">Market Brief</button>
+<button role="tab" id="tab-stories" aria-controls="stories" aria-selected="false" data-tab="stories">Marketing Charts</button>
 <button role="tab" id="tab-regions" aria-controls="regions" aria-selected="false" data-tab="regions">Regions & Ready Stock</button>
 <button role="tab" id="tab-prices" aria-controls="prices" aria-selected="false" data-tab="prices">Prices & Relative Value</button>
 <button role="tab" id="tab-supply" aria-controls="supply" aria-selected="false" data-tab="supply">Supply & Build Pace</button>
@@ -40,6 +42,9 @@
 <div class="card"><h2>Where the year-over-year cushion went</h2><p class="sub">A stock-level bridge separates the inventory inherited at March-end from what each season added afterward. All values are million barrels.</p><div id="chart-carry" class="chart"></div><p class="source">Uses actual stock-level differences, not the sum of rounded weekly reported builds. That distinction avoids a 0.1M rounding/reconciliation difference in the prior season.</p></div>
 </div>
 <div class="card prose" id="analystRead"></div>
+</section>
+<section class="panel" id="stories" hidden role="tabpanel" aria-labelledby="tab-stories">
+<div class="eyebrow">Tell the market story</div><h1 class="sectiontitle">Charts built for your next marketing piece</h1><p class="sectionintro">Six graphics with a clear takeaway, readable labels and source dates inside the image. Download a 1600 × 1000 PNG for a presentation or social post, or an editable SVG for design work. Graphics reflect the dated snapshot, not live quotes.</p><p class="callout">Choose the story that fits your message. The graphics distinguish national totals from regional conditions, and observed trends from forecasts. Sources and interpretation limits stay attached when you share them.</p><div class="grid story-grid" id="storyGallery" style="margin-top:20px"></div><p id="storyDownloadStatus" role="status" aria-live="polite"></p>
 </section>
 <section class="panel" id="regions" hidden role="tabpanel" aria-labelledby="tab-regions">
 <div class="eyebrow">Availability is regional</div><h1 class="sectiontitle">Where the barrels are, and what is ready for sale</h1><p class="sectionintro">A national inventory number is not a measure of availability at a particular terminal. These charts use the actual regional columns in your workbook, not fixed percentages of US stocks.</p>
@@ -253,5 +258,6 @@ initContent();
 window.FEP_REVIEW={data:D,charts,switchTab};
 </script>
 <script src="metrics.js"></script>
+<script src="stories.js"></script>
 <script src="enhancements.js"></script>
 </body></html>

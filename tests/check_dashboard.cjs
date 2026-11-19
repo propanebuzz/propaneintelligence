@@ -26,7 +26,7 @@ const context={document:doc,window:{addEventListener(){},scrollTo(){}},location:
 vm.createContext(context);
 vm.runInContext(fs.readFileSync(process.argv[2],'utf8'),context);
 for(const match of html.matchAll(/<script(?:\s[^>]*)?>([\s\S]*?)<\/script>/g))if(match[1].trim())vm.runInContext(match[1],context);
-for(const name of ['metrics.js','enhancements.js'])vm.runInContext(fs.readFileSync('dashboard/'+name,'utf8'),context);
+for(const name of ['metrics.js','stories.js','enhancements.js'])vm.runInContext(fs.readFileSync('dashboard/'+name,'utf8'),context);
 for(const tab of tabNames)context.window.FEP_REVIEW.switchTab(tab);
 for(const [id,e] of Object.entries(elements))assert(!/NaN|undefined|Infinity/.test(e.innerHTML+e.textContent),`Invalid display value in ${id}`);
 assert(elements.mainKpis.innerHTML.includes('Ready-for-sale, US'));
@@ -34,7 +34,7 @@ const data=context.window.FEP_REVIEW.data, latest=data.weekly.at(-1);
 assert(elements.readySnapshot.innerHTML.includes('Ready-for-sale, M bbl'));
 assert(elements.supplyRead.innerHTML.includes('Regional production and import support'));
 assert(status.textContent.includes(latest.date.slice(0,4)));
-console.log('All ten tabs execute; no invalid display values; Ready-for-Sale and regional fields present. Browser visual verification remains pending.');
+console.log('All eleven tabs execute; no invalid display values; Ready-for-Sale and regional fields present. Browser visual verification remains pending.');
 // Exercise selectable metrics, source gaps, all archive seasons and assumption errors.
 for(const k of ['inv','midwest','gulf','ready']){elements.seasonMetric.value=k;elements.seasonMetric.onchange()}
 for(const k of ['cwy','tet','spread','cwyRatio']){elements.overlayMetric.value=k;elements.overlayMetric.onchange()}
@@ -53,3 +53,6 @@ assert(elements.correctionHistory.innerHTML.includes('24.6M'));
 console.log('Enhanced controls, null coverage, local note escaping and scenario outputs pass.');
 
 for(const weight of ['1','2']){elements.analogWeight.value=weight;elements.analogWeight.onchange();assert(elements.projectionMethod.innerHTML.includes(weight+'× weight'))}
+
+assert.equal((elements.storyGallery.innerHTML.match(/Download PNG/g)||[]).length,6);
+assert(elements.storyGallery.innerHTML.includes('2026-11-13'));
