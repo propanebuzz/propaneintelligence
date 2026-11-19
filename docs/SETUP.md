@@ -108,3 +108,8 @@ Local import of the supplied legacy weekly workbook, daily XLSX and complete EIA
 ## User-supplied source refresh — November 19, 2026
 
 Imported the supplied legacy weekly workbook and daily XLSX plus the November 13 EIA PDF. Dashboard now contains 221 daily observations through November 18 and 620 weekly observations through November 13. Previously saved prices and core weekly history matched; official historical supplementary fields were retained and latest fields validated against the supplied PDF. Missing supplemental observations for intervening weeks remain null with explicit warnings. Source workbooks and Drive files were not changed. Fifty tests and all six dashboard execution checks passed. Sources and pre-import snapshots remain private. Network publication must be verified separately.
+
+
+## Supplemental EIA reports — November 19, 2026
+
+The October 23, October 30 and November 6 PDFs each filled 17 missing official demand/import/regional fields in the dashboard. October 16 was a matching duplicate. The user explicitly approved the November 6 Midwest correction from 25.6M to EIA's 24.6M; the other-regions balance was recomputed from 13.6M to 14.6M, preserving national/Gulf totals. Exact before/after values and source hashes are journaled privately. All other saved observations and daily prices are unchanged; no workbook or Drive writes occurred. Only October 2 and October 9 detail gaps remain. Fifty-five tests and all six dashboard execution checks passed. Raw reports remain private. Publication is subject to successful GitHub push.
